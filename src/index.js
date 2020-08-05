@@ -9,7 +9,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cors())
 
-require('./controllers/authController')(app)
+require('./controllers/authenticate')(app)
 
 const port = process.env.PORT || 3001
 

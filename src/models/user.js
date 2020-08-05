@@ -2,10 +2,6 @@ const mongoose = require('../database/index')
 const bcrypt = require('bcryptjs')
 
 const UserSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
   email: {
     type: String,
     unique: true,
@@ -19,9 +15,10 @@ const UserSchema = new mongoose.Schema({
       return /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/.test(password)
     }
   },
-  funcoes: {
-    type: String,
-    required: true
+  confirmed: {
+    type: Boolean,
+    required: true,
+    default: false
   },
   createdAt: {
     type: Date,
