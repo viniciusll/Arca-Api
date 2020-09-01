@@ -27,25 +27,27 @@ router.post('/register', async (req, res) => {
 
         user.password = undefined;
 
-        const msg = `
-            Valide seu token para conseguir acessar nosso sistema.
+        const token = createToken({ user: user.id, email: user.email, confirmed: user.confirmed });
 
-            acesse o link para validar automaticamente http://localhost:3000/confirmation
+        const msg = `
+            Valide seu token para conseguir acessar em nosso sistema.<br />
+
+            acesse o link para validar automaticamente http://localhost:3001/authenticate/confirmed/${token}
         `;
 
         const msgUser = {
             to: user.email,
-            from: 'vinicius@arca.com.br',
-            subject: 'Pedido emitido',
+            from: 'vinicius@democraciadopovo.com.br',
+            subject: 'Você está registrado em nosso sistema.',
             html: msg
           };
 
         sgMail.send(msgUser)
-          .then(() => console.log('sucesso'));
+          .then(() => console.log('email enviado'));
 
-        return res.status(201).send({ user, token: createToken({ user: user.id, email: user.email }) });
+        return res.status(201).send({ user, token });
     } catch (err) {
-        return res.status(400).send({
+        return res.status(503).send({
             error: 'Não foi possível se registrar'
         });
     };
@@ -70,13 +72,13 @@ router.post('/login', async (req, res) => {
     return res.status(202).send({ user, token: createToken({ user: user.id, email: user.email }) });
 });
 
-router.post('/confirmed/:token', async (req, res) => {
+router.get('/confirmed/:token', async (req, res) => {
     try {
         const { token } = req.params;
 
         const tokenDecoded = jwt.decode(token);
 
-        if (tokenDecoded === null)
+        if (!tokenDecoded)
             return res.status(401).send({ error: "token invalido" });
 
         console.log('token decoded: ', tokenDecoded);
@@ -88,7 +90,7 @@ router.post('/confirmed/:token', async (req, res) => {
 
         await User.findByIdAndUpdate(userId, { confirmed: true });
 
-        res.status(202).send({ msg: 'usuário confirmado com sucesso' });
+        res.redirect(301, "http://localhost:3000/confirmation");
 
     } catch (err) {
         res.send({ error: `error: ${e}` });
