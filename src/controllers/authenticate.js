@@ -1,14 +1,35 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const sgMail = require('@sendgrid/mail');
+const nodemailer = require('nodemailer');
 
 const User = require('../models/user');
 const config = require('./config/config');
 
 const router = express.Router();
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const user = process.env.user;
+const pass = process.env.pass;
+
+const configEmail = (text, subject, to) => {
+    const transporter = nodemailer.createTransport({
+        host: 'mail1.placasexpress.com',
+        port: 587,
+        auth: { user, pass }
+    });
+
+    transporter.sendMail({
+        from: user,
+        to: to,
+        subject: subject,
+        html: text
+    }).then(info => {
+        console.log('success: ', info);
+    }).catch(err => {
+        console.log('error: ', err);
+    });
+
+};
 
 const createToken = (params = {}) =>
     jwt.sign(params, config.secret, {
@@ -35,15 +56,7 @@ router.post('/register', async (req, res) => {
             acesse o link para validar automaticamente http://localhost:3001/authenticate/confirmed/${token}
         `;
 
-        const msgUser = {
-            to: user.email,
-            from: 'vinicius@democraciadopovo.com.br',
-            subject: 'Você está registrado em nosso sistema.',
-            html: msg
-          };
-
-        sgMail.send(msgUser)
-          .then(() => console.log('email enviado'));
+        configEmail(msg, 'Cadastro Arca: ', user.email);
 
         return res.status(201).send({ user, token });
     } catch (err) {
