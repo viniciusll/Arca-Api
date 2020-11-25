@@ -70,13 +70,6 @@ const UserSchema = new mongoose.Schema({
   }]
 });
 
-UserSchema.pre('save', async function (next) {
-  const hash = await bcrypt.hash(this.password, 8);
-  this.password = hash;
-
-  next();
-});
-
 const User = mongoose.model('User', UserSchema);
 
 module.exports = User;
