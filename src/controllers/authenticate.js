@@ -124,7 +124,6 @@ router.get('/confirmed/:token', async (req, res) => {
     }
 })
 
-
 router.put('/updateProfile/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
