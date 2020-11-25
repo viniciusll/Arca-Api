@@ -37,14 +37,28 @@ const createToken = (params = {}) =>
     });
 
 router.post('/register', async (req, res) => {
-    const { email } = req.body;
+    const {
+        email,
+        password,
+        firstName,
+        lastName
+    } = req.body;
 
     try {
         if (await User.findOne({ email })) {
             return res.status(400).send({ error: 'Usuário já existe' });
         }
 
-        const user = await User.create(req.body);
+
+        const user = await User.create({
+            email: email,
+            password: password,
+            profile: [{
+                email: email,
+                firstName: firstName,
+                lastName: lastName
+            }]
+        });
 
         user.password = undefined;
 
@@ -56,12 +70,12 @@ router.post('/register', async (req, res) => {
             acesse o link para validar automaticamente http://localhost:3001/authenticate/confirmed/${token}
         `;
 
-        configEmail(msg, 'Cadastro Arca: ', user.email);
+        // configEmail(msg, 'Cadastro Arca: ', newUser.email);
 
         return res.status(201).send({ user, token });
     } catch (err) {
         return res.status(503).send({
-            error: 'Não foi possível se registrar'
+            error: `Não foi possível se registrar ${err}`
         });
     };
 });
@@ -75,7 +89,7 @@ router.post('/login', async (req, res) => {
         return res.status(400).send({ error: 'Usuário não existe' });
 
     if (user.confirmed == false)
-        return res.status(400).send({ error: 'Você precisa confirmar seu token antes de logar'});
+        return res.status(400).send({ error: 'Você precisa confirmar seu token antes de logar' });
 
     if (!await bcrypt.compare(password, user.password))
         return res.status(401).send({ error: 'Senha errada' });
@@ -110,5 +124,54 @@ router.get('/confirmed/:token', async (req, res) => {
     }
 })
 
+
+router.put('/updateProfile/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const {
+            emailProfile,
+            firstName,
+            lastName,
+            city,
+            country,
+            cep,
+            state,
+            street,
+            number,
+            district,
+            complement,
+            description
+        } = req.body;
+
+        const user = await User.findById(userId);
+
+        const updateProfile = {
+            emailProfile: emailProfile,
+            firstName: firstName,
+            lastName: lastName,
+            address: [{
+                city: city,
+                country: country,
+                cep: cep,
+                state: state,
+                street: street,
+                number: number,
+                district: district,
+                complement: complement
+            }],
+            description: description
+        };
+
+        user.profile = updateProfile;
+
+        user.save();
+
+        res.status(200).send({ updateProfile });
+    } catch (err) {
+        return res.status(503).send({
+            error: `Não foi possível enviar as alterações ${err}`
+        });
+    }
+});
 
 module.exports = app => app.use('/authenticate', router);

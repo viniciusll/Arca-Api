@@ -1,5 +1,5 @@
-const mongoose = require('../database/index')
-const bcrypt = require('bcryptjs')
+const mongoose = require('../database/index');
+const bcrypt = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
   email: {
@@ -24,15 +24,59 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-})
+  profile: [{
+    emailProfile: {
+      type: String,
+      unique: true
+    },
+    firstName: {
+      type: String
+    },
+    lastName: {
+      type: String
+    },
+    address: [{
+      city: {
+        type: String
+      },
+      country: {
+        type: String
+      },
+      cep: {
+        type: String
+      },
+      state: {
+        type: String
+      },
+      street: {
+        type: String
+      },
+      number: {
+        type: Number
+      },
+      district: {
+        type: String
+      },
+      complement: {
+        type: String
+      }
+    }],
+    imageProfileUrl: {
+      type: String
+    },
+    description: {
+      type: String
+    }
+  }]
+});
 
 UserSchema.pre('save', async function (next) {
-  const hash = await bcrypt.hash(this.password, 8)
-  this.password = hash
+  const hash = await bcrypt.hash(this.password, 8);
+  this.password = hash;
 
-  next()
-})
+  next();
+});
 
-const User = mongoose.model('User', UserSchema)
+const User = mongoose.model('User', UserSchema);
 
-module.exports = User
+module.exports = User;
